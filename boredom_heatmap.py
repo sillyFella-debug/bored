@@ -31,19 +31,30 @@ class BoredomHeatmap:
         }
         self.boredom_threshold = boredom_threshold
         
-        # Initialize MediaPipe components
-        self.mp_face_mesh = mp.solutions.face_mesh
-        self.mp_drawing = mp.solutions.drawing_utils
-        self.mp_drawing_styles = mp.solutions.drawing_styles
-        
-        # Face mesh configuration
-        self.face_mesh = self.mp_face_mesh.FaceMesh(
-            static_image_mode=False,
-            max_num_faces=20,  # Support up to 20 faces in gallery view
-            refine_landmarks=True,
-            min_detection_confidence=0.5,
-            min_tracking_confidence=0.5
-        )
+        # Attempt to initialize MediaPipe - handling version compatibility
+        try:
+            # Try to import the older solutions API
+            import mediapipe as mp
+            self.mp_face_mesh = mp.solutions.face_mesh
+            self.mp_drawing = mp.solutions.drawing_utils
+            self.mp_drawing_styles = mp.solutions.drawing_styles
+            
+            self.face_mesh = self.mp_face_mesh.FaceMesh(
+                static_image_mode=False,
+                max_num_faces=20,  # Support up to 20 faces in gallery view
+                refine_landmarks=True,
+                min_detection_confidence=0.5,
+                min_tracking_confidence=0.5
+            )
+            print("Successfully loaded MediaPipe with Solutions API")
+        except AttributeError:
+            # If solutions API is not available, try alternative approach
+            print("MediaPipe solutions not available, attempting workaround...")
+            # Set to None so we can handle gracefully in methods
+            self.face_mesh = None
+            self.mp_face_mesh = None
+            self.mp_drawing = None
+            self.mp_drawing_styles = None
         
         # Initialize pygame for audio
         pygame.mixer.init()
